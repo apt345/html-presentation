@@ -1,0 +1,117 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+
+Airlines (Stat2Data) dataset 
+========================================================
+author: Arturo Prieto Tirado
+date: 29/01/2021
+autosize: true
+font-import: https://fonts.googleapis.com/css2?family=Akaya+Kanadaka&display=swap
+font-family: 'Akaya Kanadaka' 
+
+<style>
+/* css for initial slide */
+.section .reveal .state-background {
+    background-image: url(https://www.ecestaticos.com/imagestatic/clipping/868/9ca/8689ca73237158da46e457a120354717/por-que-los-aviones-comerciales-no-llevan-paracaidas-para-casos-de-emergencia.jpg?mtime=1593793065);
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+/* css for the rest of slides */
+body{
+
+background-color: #cce6ff;
+data-transition: "fade";
+
+}
+</style>
+
+
+The dataset 
+========================================================
+incremental: true
+
+
+Describes 10333 OnTime arrivals for American and Delta airlines at LaGuardia (New York) and O'Hare (Chicago) airports using 5 categorical variables:
+
+- Airline : Either American or Delta
+- Airport : Either LGA=La Guardia or ORD=O'Hare
+- On time : Yes or no
+- IndOHare: Is the airport ORD? (1=yes or 0=no)
+- IndDelta: Is the airline Delta? (1=yes or 0=no)
+
+
+Variable Distribution 
+========================================================
+transition: fade
+
+```{r, out.width="60%", echo=FALSE}
+library(Stat2Data)
+data(Airlines)
+par(mfrow=c(1,5))
+plot(Airlines$airline, main="Airlines")
+plot(Airlines$airport, main="Airport")
+plot(Airlines$OnTime, main="On time?")
+plot(as.factor(Airlines$IndOHare), main="IndOHare")
+plot(as.factor(Airlines$IndDelta), main="IndDelta")
+```
+
+
+
+Variable Distribution 2
+========================================================
+incremental:true
+transition:fade
+- 71 % of the flights belong to American Airlines and 29% to Delta.
+
+- 45% of the flights arrived to La Guardia and 55% to Chicago O'Hare
+
+- 80% of the flights arrived on time
+
+- IndOHare and IndDelta contain the same information as airline and airport
+
+
+Correlations
+========================================================
+
+Able to study if flights are delayed or not. See correlations with respect to OnTime.
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(ltm)
+library(rcompanion)#cramer v for jet num
+y = as.factor(Airlines$OnTime)
+Airlines$IndOHare=as.factor(Airlines$IndOHare)
+Airlines$IndDelta=as.factor(Airlines$IndDelta)
+
+corr_OnTime=matrix(nrow=length(Airlines),ncol=length(Airlines))
+rownames(corr_OnTime)=colnames(Airlines)
+colnames(corr_OnTime)=colnames(Airlines)
+for(i in(1:(length(Airlines)))){
+    corr_OnTime["OnTime", colnames(Airlines)[i]]=abs(cramerV(Airlines[,i],y))#take absolute value
+  
+}
+corr_OnTime["OnTime", "OnTime"]=1#add manually the correlation with its own
+
+corr_OnTime <- sort(corr_OnTime["OnTime",], decreasing = T)
+corr=data.frame(corr_OnTime)
+ggplot(corr,aes(x = row.names(corr), y = corr_OnTime)) + 
+  geom_bar(stat = "identity", fill = "lightblue") + 
+  scale_x_discrete(limits= row.names(corr)) +
+  labs(x = "", y = "OnTime", title = "Correlations") + 
+  theme(plot.title = element_text(hjust = 0, size = rel(1.5)),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+Conclusions
+===============================================================
+incremental:true
+
+- Redundant variables like IndOHare and IndDelta are just 0/1 binary representations on the binary categorical variables airport and airline.
+
+- Punctuality can be a variable of interest for study. However, there is low correlation and few variables, so it would be interesting to expand the dataset with many more variables and/or more important ones to build models.
